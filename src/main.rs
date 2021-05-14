@@ -1,7 +1,8 @@
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
-use r2d2_mysql::mysql::{OptsBuilder, QueryResult, from_row};
+use serde::ser::{Serialize, SerializeStruct, Serializer};
+use r2d2_mysql::mysql::{self, OptsBuilder, QueryResult, from_row, prelude::FromRow};
 use std::sync::Arc;
 use r2d2::Pool;
 use r2d2_mysql::MysqlConnectionManager;
@@ -23,10 +24,12 @@ struct AppState {
     app_name: String,
     pool: Arc<Pool<MysqlConnectionManager>>,
 }
+#[derive(Serialize)]
 struct Personas{
-    pub id: u32,
-    pub name: String,
+    person_id: i32,
+    person_name: String,
 }
+
 
 async fn firstget(req: HttpRequest) ->impl Responder{
     let name = req.match_info().get("name").unwrap_or("World");
@@ -64,24 +67,33 @@ async fn index2( data: web::Data<AppState>) -> impl Responder {
     let app_name = &data.app_name; // <- get app_name
  
     let pool = &data.pool;
- 
- 
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
-    let qr=conn.query("select person_id, person_name from person").unwrap();
-    //  let qr: QueryResult = conn.prep_exec("select person_id, person_name from person where person_id = ?", (param, )).unwrap();
-    let mut listado: Vec<Personas>=Vec::new();
-    for row in qr {
-        let identificador= row.get(0);
-        let nombre= row.get(1);
-        let patata =Personas{
-            id: identificador,
-            name: nombre,
-        };
-        listado.push(patata);
-    }
+    let all_persons: Vec<Personas> =
+    conn.prep_exec("SELECT person_id, person_name from person", ())
 
-    HttpResponse::Ok().json(listado)
+        .map(|result| {
+            result.map(|x| x.unwrap()).map(|row| {
+                let (person_id, person_name) = {
+                    let row = row;
+                    FromRow::from_row(row)
+                };
+
+                Personas {
+                    person_id,
+                    person_name,
+                }
+            }).collect()
+        }).unwrap(); // Unwrap `Vec<Person>`
+        let mut listado:Vec<Personas>=Vec::new();
+        for items in all_persons.iter(){
+            let estructura=Personas{
+                person_id: items.person_id,
+                person_name: String::from("prueba")
+            };
+            listado.push(estructura);
+        }
+        HttpResponse::Ok().json(listado)
 }
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -93,6 +105,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
         .app_data(app_data.clone()
         ).service(index)
+        .service(index2)
         .service(hello)
             .route("/", web::get().to(firstget))
             .route("/{name}", web::get().to(firstget))
