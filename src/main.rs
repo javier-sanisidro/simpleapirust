@@ -1,4 +1,4 @@
-use actix_web::{web,get, App, HttpRequest, HttpServer,HttpResponse, Responder};
+use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
 use r2d2_mysql::mysql::{OptsBuilder, QueryResult, from_row};
@@ -61,10 +61,11 @@ async fn main() -> std::io::Result<()> {
         app_name: String::from("ozona"),
         pool: get_pool().unwrap(),
     });
-    HttpServer::new(move|| {
+    HttpServer::new(move || {
         App::new()
+        .app_data(app_data.clone()
+        ).service(index)
         .service(hello)
-        .service(index)
             .route("/", web::get().to(firstget))
             .route("/{name}", web::get().to(firstget))
     })
