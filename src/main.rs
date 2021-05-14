@@ -1,4 +1,4 @@
-use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, web::{self, Data}};
+use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get,post, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
 use serde::{Deserialize, Serialize};
@@ -21,10 +21,12 @@ fn get_pool() -> Option<Arc<Pool<MysqlConnectionManager>>> {
     let pool = Arc::new(r2d2::Pool::new(manager).unwrap());
     return Option::Some(pool);
 }
+
 struct AppState {
     app_name: String,
     pool: Arc<Pool<MysqlConnectionManager>>,
 }
+
 #[derive(Deserialize, Serialize)]
 struct Personas{
     person_id: i32,
@@ -36,10 +38,34 @@ async fn firstget(req: HttpRequest) ->impl Responder{
     let name = req.match_info().get("name").unwrap_or("World");
     format!("Hello {}!", &name)
 }
+
+
+
 #[get("/patata")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("esto es una prueba")
 }
+
+
+
+
+
+#[post("/ingresar_personas")]
+async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Responder {
+    let app_name = &data.app_name; // <- get app_name
+ 
+    let pool = &data.pool;
+ 
+ 
+    let pool = pool.clone();
+    let mut conn = pool.get().unwrap();
+ 
+    HttpResponse::Ok().body("esto es una prueba")
+}
+
+
+
+
 #[get("/persons/{id}")]
 async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responder {
     let app_name = &data.app_name; // <- get app_name
@@ -63,6 +89,10 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
     let unwrap_rec = rec.unwrap();
     format!("Hello {} ({})! \n from {}",  unwrap_rec.1, unwrap_rec.0, app_name)
 }
+
+
+
+
 #[get("/persona")]
 async fn index2( data: web::Data<AppState>) -> impl Responder {
     let app_name = &data.app_name; // <- get app_name
@@ -88,14 +118,18 @@ async fn index2( data: web::Data<AppState>) -> impl Responder {
         }).unwrap(); // Unwrap `Vec<Person>`
         let mut listado:Vec<Personas>=Vec::new();
         for items in all_persons.iter(){
+           
             let estructura=Personas{
                 person_id: items.person_id,
-                person_name: String::from("prueba")
+                person_name: items.person_name.clone(),
             };
             listado.push(estructura);
         }
         HttpResponse::Ok().json(listado)
 }
+
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let app_data = web::Data::new(AppState {
@@ -108,6 +142,7 @@ async fn main() -> std::io::Result<()> {
         ).service(index)
         .service(index2)
         .service(hello)
+        .service(hello2)
             .route("/", web::get().to(firstget))
             .route("/{name}", web::get().to(firstget))
     })
