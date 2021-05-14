@@ -1,7 +1,8 @@
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
-use serde::ser::{Serialize, SerializeStruct, Serializer};
+use serde::{Deserialize, Serialize};
+
 use r2d2_mysql::mysql::{self, OptsBuilder, QueryResult, from_row, prelude::FromRow};
 use std::sync::Arc;
 use r2d2::Pool;
@@ -24,7 +25,7 @@ struct AppState {
     app_name: String,
     pool: Arc<Pool<MysqlConnectionManager>>,
 }
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 struct Personas{
     person_id: i32,
     person_name: String,
