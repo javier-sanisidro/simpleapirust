@@ -59,8 +59,13 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
  
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
+    let ingreso= Personas{
+        person_id: info.person_id,
+        person_name: info.person_name.clone(),
+    };
+    let qr: QueryResult = conn.prep_exec("INSERT INTO person VALUES(?,?)", (ingreso.person_id,ingreso.person_name )).unwrap();
  
-    HttpResponse::Ok().body("esto es una prueba")
+    HttpResponse::Ok().body("Mira la base de datos")
 }
 
 
@@ -87,7 +92,7 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
     }
  
     let unwrap_rec = rec.unwrap();
-    format!("Hello {} ({})! \n from {}",  unwrap_rec.1, unwrap_rec.0, app_name)
+    format!("Hello {} ! \n",  unwrap_rec.1)
 }
 
 
