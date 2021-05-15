@@ -13,6 +13,10 @@ fn get_pool() -> Option<Arc<Pool<MysqlConnectionManager>>> {
     o.db_name(Option::Some("ozona"));
     o.user(Option::Some("root"));
     o.pass(Option::Some("abc123."));
+    o.ip_or_hostname(Option::Some("127.0.0.1"));
+    o.tcp_port(3306);
+    
+    
  
     let manager = r2d2_mysql::MysqlConnectionManager::new(o);
  
