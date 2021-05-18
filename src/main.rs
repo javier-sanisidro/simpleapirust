@@ -56,20 +56,23 @@ async fn hello() -> impl Responder {
 
 #[post("/ingresar_personas")]
 async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Responder {
+    println!("Acces to post person ");
     let app_name = &data.app_name; // <- get app_name
- 
+  
     let pool = &data.pool;
  
- 
+  
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
+    println!("Connect to db");
     let ingreso= Personas{
         person_id: info.person_id,
         person_name: info.person_name.clone(),
     };
+    println!("get data from json");
     let qr: QueryResult = conn.prep_exec("INSERT INTO person VALUES(?,?)", (ingreso.person_id,ingreso.person_name )).unwrap();
- 
-    HttpResponse::Ok().body("Mira la base de datos")
+    println!("add person to db");
+    HttpResponse::Ok().body("Añadido correctamente")
 }
 
 
@@ -77,6 +80,7 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
 
 #[get("/persons/{id}")]
 async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responder {
+    println!("Acces to get person by id ");
     let app_name = &data.app_name; // <- get app_name
  
     let pool = &data.pool;
@@ -84,12 +88,15 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
  
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
- 
+    println!("Connect to db");
+    
     let param = info.into_inner();
+    println!("get id from url: {}",param);
+    println!("search into db the person with the parameter");
     let qr: QueryResult = conn.prep_exec("select person_id, person_name from person where person_id = ?", (param, )).unwrap();
  
     let mut rec: Option<(i32, String)> = None;
- 
+    println!("Convert data");
     for row in qr {
         rec = Some(from_row(row.unwrap()));
         break;
@@ -105,10 +112,13 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
 #[get("/persona")]
 async fn index2( data: web::Data<AppState>) -> impl Responder {
     let app_name = &data.app_name; // <- get app_name
+    println!("Acces to get all person");
  
     let pool = &data.pool;
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
+    println!("Connect to db");
+    println!("take all person in a vector");
     let all_persons: Vec<Personas> =
     conn.prep_exec("SELECT person_id, person_name from person", ())
 
@@ -125,6 +135,7 @@ async fn index2( data: web::Data<AppState>) -> impl Responder {
                 }
             }).collect()
         }).unwrap(); // Unwrap `Vec<Person>`
+        println!("convert all data to vec<struct>");
         let mut listado:Vec<Personas>=Vec::new();
         for items in all_persons.iter(){
            
@@ -134,6 +145,7 @@ async fn index2( data: web::Data<AppState>) -> impl Responder {
             };
             listado.push(estructura);
         }
+        println!("put in web vec<struc>");
         HttpResponse::Ok().json(listado)
 }
 
@@ -145,6 +157,10 @@ async fn main() -> std::io::Result<()> {
         app_name: String::from("ozona"),
         pool: get_pool().unwrap(),
     });
+    let database_url = match std::env::var("DATABASE_URL") {
+        Ok(val) => val,
+        Err(_e) => "localhost".to_string(),
+       };
     create_table(app_data.clone());
     HttpServer::new(move || {
         App::new()
@@ -168,6 +184,7 @@ fn create_table(data: Data<AppState>){
     let pool = &data.pool;
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
+    println!("Create table");
     let command= String::from(" CREATE TABLE IF NOT EXISTS  person( person_id int auto_increment,person_name varchar(100) null,constraint person_pk primary key (person_id))");
     conn.prep_exec(command, ());
 }
