@@ -1,23 +1,17 @@
 version: "3.4"
 services:
-  #actix_api:
-    # container_name: "actix_api"
-    # build:
-    #   context: .
-    #   dockerfile: "Dockerfile"
-    #   cache_from: 
-    #     - rust:latest
-    # links:
-    #   - "postgres"
-    # depends_on:
-    #   - "postgres"
-    # environment:
-    #   - PG_URL=postgres://docker:docker@postgres:5432/docker
-    # networks:
-    #   - actix_api
-    # tty: true
-    # ports:
-    #   - "4000:4000"
+  elapi:
+    image: rust
+    #restart: always
+    environment:
+      RUST_DB_HOST: mysql
+      RUST_DB_PASSWORD: abc123.
+     RUST_DB_USERNAME: root
+     RUST_DB_NAME: ozona
+    ports:
+    - "3306:3306"
+    links: 
+      - elserver
     
   elserver:
     image: mysql:8.0.13
