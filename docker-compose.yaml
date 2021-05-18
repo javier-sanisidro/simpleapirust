@@ -1,13 +1,14 @@
 version: "3.4"
 services:
+  
   elapi:
     image: rust
     #restart: always
     environment:
       RUST_DB_HOST: mysql
       RUST_DB_PASSWORD: abc123.
-     RUST_DB_USERNAME: root
-     RUST_DB_NAME: ozona
+      RUST_DB_USERNAME: root
+      RUST_DB_NAME: ozona
     ports:
     - "3306:3306"
     links: 
@@ -21,5 +22,3 @@ services:
       MYSQL_PASSWORD: abc123.
       MYSQL_ROOT_PASSWORD: abc123.
       MYSQL_DATABASE: ozona
-    ports:
-    - "3306:3306"
