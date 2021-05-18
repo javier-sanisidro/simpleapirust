@@ -14,7 +14,8 @@ WORKDIR /app
 # Copiamos el binario 
 COPY --from=builder /app/target/release/rest-api ./rest-api
 RUN apt-get update \
- && apt-get install -y openssl libx11-xcb-dev \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y openssl libx11-xcb-dev \
+    && rm -rf /var/lib/apt/lists/*
 # Ejecutamos el binario 
 CMD ["./rest-api"]
+
