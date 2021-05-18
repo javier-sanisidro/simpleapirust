@@ -1,8 +1,9 @@
-use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get,post, web::{self, Data}};
+use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, middleware::Logger, post, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
 use serde::{Deserialize, Serialize};
-
+use log::Level;
+use std::env;
 use r2d2_mysql::mysql::{self, OptsBuilder, QueryResult, from_row, prelude::FromRow};
 use std::sync::Arc;
 use r2d2::Pool;
@@ -157,13 +158,20 @@ async fn main() -> std::io::Result<()> {
         app_name: String::from("ozona"),
         pool: get_pool().unwrap(),
     });
-    let database_url = match std::env::var("DATABASE_URL") {
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::init();
+    let database_url = match env::var("hostname") {
         Ok(val) => val,
         Err(_e) => "localhost".to_string(),
        };
+       println!("{}",database_url);
+
     create_table(app_data.clone());
     HttpServer::new(move || {
         App::new()
+        .wrap(Logger::default())
+        .wrap(Logger::new("%a %{User-Agent}i"))
+        .wrap(Logger::new("%a %{FOO}e"))
         .app_data(app_data.clone()
         ).service(index)
         .service(index2)
@@ -171,6 +179,8 @@ async fn main() -> std::io::Result<()> {
         .service(hello2)
             .route("/", web::get().to(firstget))
             .route("/{name}", web::get().to(firstget))
+
+            
     })
     // Cambie 127.0.0.1 por 0.0.0.0 dentro de los docker intentemos no referirnos a localhost y el puerto donde se va a ejecutar la aplicacion al 80 
     // podria dejarlo que se ejecute en el puerto 8080 y a la hora de ejecutarlo con docker utilizar -p 80:8080 -p <PUERTO-HOST>:<PUERTO-CONTENEDOR>
