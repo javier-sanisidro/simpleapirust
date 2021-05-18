@@ -2,7 +2,7 @@ version: "3.4"
 services:
   
   elapi:
-    image: simpleapirust
+    build: .
     ports:
     - "8080:80"
     environment: 
