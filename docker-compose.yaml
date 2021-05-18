@@ -1,17 +1,18 @@
 version: "3.4"
 services:
   
-  #elapi:
-   # image: simpleapirust:lastest
-    #environment:
-     # SIMPLEAPIRUST_DB_HOST: mysql
-     # SIMPLEAPIRUST_DB_PASSWORD: abc123.
-     # SIMPLEAPIRUST_DB_USERNAME: root
-     # SIMPLEAPIRUST_DB_NAME: ozona
-    #ports:
-    #- "8080:80"
-    #links: 
-     # - elserver
+  elapi:
+    image: simpleapirust
+    ports:
+    - "8080:80"
+    environment: 
+      URL_DATABASE: elserver
+      HOST_DATABASE: ozona
+      USER_DATABASE: root
+      PASSWORD_DATABASE: abc123.
+    links: 
+      - elserver:elserver
+
     
   elserver:
     image: mysql:8.0.13

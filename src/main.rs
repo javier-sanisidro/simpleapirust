@@ -11,11 +11,26 @@ use r2d2_mysql::MysqlConnectionManager;
 
 fn get_pool() -> Option<Arc<Pool<MysqlConnectionManager>>> {
     let mut o = OptsBuilder::new();
-    o.db_name(Option::Some("ozona"));
-    o.user(Option::Some("root"));
-    o.pass(Option::Some("abc123."));
-    o.ip_or_hostname(Option::Some("127.0.0.1"));
-    o.tcp_port(3306);
+    let db_name = match env::var("HOST_DATABASE") {
+        Ok(val) => val,
+        Err(_e) => "ozona".to_string(),
+       };
+    o.db_name(Option::Some(db_name));
+    let name = match env::var("USER_DATABASE") {
+        Ok(val) => val,
+        Err(_e) => "root".to_string(),
+       };
+    o.user(Option::Some(name));
+    let password = match env::var("PASSWORD_DATABASE") {
+        Ok(val) => val,
+        Err(_e) => "abc123.".to_string(),
+       };
+    o.pass(Option::Some(password));
+    let database_url = match env::var("URL_DATABASE") {
+        Ok(val) => val,
+        Err(_e) => "localhost".to_string(),
+       };
+    o.ip_or_hostname(Option::Some(database_url));
     
     
  
@@ -160,11 +175,8 @@ async fn main() -> std::io::Result<()> {
     });
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-    let database_url = match env::var("hostname") {
-        Ok(val) => val,
-        Err(_e) => "localhost".to_string(),
-       };
-       println!("{}",database_url);
+  
+      
 
     create_table(app_data.clone());
     HttpServer::new(move || {
@@ -184,7 +196,7 @@ async fn main() -> std::io::Result<()> {
     })
     // Cambie 127.0.0.1 por 0.0.0.0 dentro de los docker intentemos no referirnos a localhost y el puerto donde se va a ejecutar la aplicacion al 80 
     // podria dejarlo que se ejecute en el puerto 8080 y a la hora de ejecutarlo con docker utilizar -p 80:8080 -p <PUERTO-HOST>:<PUERTO-CONTENEDOR>
-    .bind(("127.0.0.1", 80))?
+    .bind(("0.0.0.0", 80))?
     .run()
     .await
 }
