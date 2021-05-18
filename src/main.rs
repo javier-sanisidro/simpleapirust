@@ -145,6 +145,7 @@ async fn main() -> std::io::Result<()> {
         app_name: String::from("ozona"),
         pool: get_pool().unwrap(),
     });
+    create_table(app_data.clone());
     HttpServer::new(move || {
         App::new()
         .app_data(app_data.clone()
@@ -160,4 +161,13 @@ async fn main() -> std::io::Result<()> {
     .bind(("127.0.0.1", 80))?
     .run()
     .await
+}
+fn create_table(data: Data<AppState>){
+    let app_name = &data.app_name; // <- get app_name
+ 
+    let pool = &data.pool;
+    let pool = pool.clone();
+    let mut conn = pool.get().unwrap();
+    let command= String::from(" CREATE TABLE IF NOT EXISTS  person( person_id int auto_increment,person_name varchar(100) null,constraint person_pk primary key (person_id))");
+    conn.prep_exec(command, ());
 }
