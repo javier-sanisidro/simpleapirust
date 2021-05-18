@@ -107,7 +107,6 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
     println!("Connect to db");
     
     let param = info.into_inner();
-    println!("get id from url: {}",param);
     println!("search into db the person with the parameter");
     let qr: QueryResult = conn.prep_exec("select person_id, person_name from person where person_id = ?", (param, )).unwrap();
  
