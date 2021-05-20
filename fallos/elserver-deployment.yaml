@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: elserver
+  name: elserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      io.kompose.service: elserver
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: elserver
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_DATABASE
+          value: ozona
+        - name: MYSQL_PASSWORD
+          value: abc123.
+        - name: MYSQL_ROOT_PASSWORD
+          value: abc123.
+        - name: MYSQL_USER
+          value: practica
+        image: mysql:8.0.13
+        imagePullPolicy: ""
+        name: elserver
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

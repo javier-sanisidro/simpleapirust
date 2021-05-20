@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-api
+  labels:
+    app: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: simpleapirust
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+          - name: HOST_DATABASE
+            value: "ozona"
+          - name: PASSWORD_DATABASE
+            value: "abc123."
+          - name: URL_DATABASE
+            value: "elserver"
+          - name: USER_DATABASE
+            value: "root"
+

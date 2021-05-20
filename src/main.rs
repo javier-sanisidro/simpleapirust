@@ -2,9 +2,8 @@ use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, midd
 extern crate r2d2;
 extern crate r2d2_mysql;
 use serde::{Deserialize, Serialize};
-use log::Level;
 use std::env;
-use r2d2_mysql::mysql::{self, OptsBuilder, QueryResult, from_row, prelude::FromRow};
+use r2d2_mysql::mysql::{ OptsBuilder, QueryResult, from_row, prelude::FromRow};
 use std::sync::Arc;
 use r2d2::Pool;
 use r2d2_mysql::MysqlConnectionManager;
@@ -73,7 +72,7 @@ async fn hello() -> impl Responder {
 #[post("/ingresar_personas")]
 async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Responder {
     println!("Acces to post person ");
-    let app_name = &data.app_name; // <- get app_name
+   
   
     let pool = &data.pool;
  
@@ -86,7 +85,7 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
         person_name: info.person_name.clone(),
     };
     println!("get data from json");
-    let qr: QueryResult = conn.prep_exec("INSERT INTO person VALUES(?,?)", (ingreso.person_id,ingreso.person_name )).unwrap();
+    let _qr: QueryResult = conn.prep_exec("INSERT INTO person VALUES(?,?)", (ingreso.person_id,ingreso.person_name )).unwrap();
     println!("add person to db");
     HttpResponse::Ok().body("Añadido correctamente")
 }
@@ -97,7 +96,7 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
 #[get("/persons/{id}")]
 async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responder {
     println!("Acces to get person by id ");
-    let app_name = &data.app_name; // <- get app_name
+    
  
     let pool = &data.pool;
  
@@ -126,7 +125,7 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
 
 #[get("/persona")]
 async fn index2( data: web::Data<AppState>) -> impl Responder {
-    let app_name = &data.app_name; // <- get app_name
+   
     println!("Acces to get all person");
  
     let pool = &data.pool;
@@ -200,12 +199,10 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 fn create_table(data: Data<AppState>){
-    let app_name = &data.app_name; // <- get app_name
- 
     let pool = &data.pool;
     let pool = pool.clone();
     let mut conn = pool.get().unwrap();
     println!("Create table");
     let command= String::from(" CREATE TABLE IF NOT EXISTS  person( person_id int auto_increment,person_name varchar(100) null,constraint person_pk primary key (person_id))");
-    conn.prep_exec(command, ());
+    conn.prep_exec(command, ()).unwrap();
 }

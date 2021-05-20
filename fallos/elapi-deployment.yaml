@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: elapi
+  name: elapi
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      io.kompose.service: elapi
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: elapi
+    spec:
+      containers:
+      - env:
+        - name: HOST_DATABASE
+          value: ozona
+        - name: PASSWORD_DATABASE
+          value: abc123.
+        - name: URL_DATABASE
+          value: elserver
+        - name: USER_DATABASE
+          value: root
+        image: simpleapirust:latest
+        name: elapi
+        ports:
+        - containerPort: 80
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

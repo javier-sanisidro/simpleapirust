@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: service
+spec:
+  type: NodePort
+  selector:
+    app: mysqlserver
+  ports:
+  - port: 3306
+    nodePort: 30080
