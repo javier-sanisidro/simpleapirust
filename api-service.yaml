@@ -8,4 +8,5 @@ spec:
     app: api
   ports:
   - port: 80
-    nodePort: 30081
+  targetPort: 80
+    nodePort: 30000
