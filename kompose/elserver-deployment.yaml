@@ -1,18 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+    kompose.version: 1.21.0 (992df58d8)
   creationTimestamp: null
   labels:
     io.kompose.service: elserver
   name: elserver
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: elserver
   strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
       labels:
         io.kompose.service: elserver
     spec:
@@ -29,6 +36,8 @@ spec:
         image: mysql:8.0.13
         imagePullPolicy: ""
         name: elserver
+        ports:
+        - containerPort: 3306
         resources: {}
       restartPolicy: Always
       serviceAccountName: ""

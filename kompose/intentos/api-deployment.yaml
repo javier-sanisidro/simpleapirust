@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: api
-        image: simpleapirust
-        imagePullPolicy: Never
+        image: sanisisi/simpleapirust:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         env:
