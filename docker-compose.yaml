@@ -25,22 +25,13 @@ services:
     volumes:
       - ~/docker/mysql-data:/var/lib/mysql2
 
-
-  apm-server:
-    image: docker.elastic.co/apm/apm-server:7.9.2
-    ports: 
-      - 8200:8200
-    environment:
-      ELASTICSEARCH_URL: http://elasticsearch:9200
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-      APM-USERNAME: "elastic"
-      APM-PASSWORD: "elastic"
-    
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
     environment:
     - bootstrap.memory_lock=true
     - cluster.name=docker-cluster
+    - xpack.security.enabled=true
+    - ELASTIC_PASSWORD=abc123.
     - cluster.routing.allocation.disk.threshold_enabled=false
     - discovery.type=single-node
     - ES_JAVA_OPTS=-XX:UseAVX=2 -Xms1g -Xmx1g
@@ -59,6 +50,17 @@ services:
       retries: 10
       test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
 
+
+  apm-server:
+    image: docker.elastic.co/apm/apm-server:7.9.2
+    ports: 
+      - 8200:8200
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: abc123.
+
   kibana:
     image: docker.elastic.co/kibana/kibana:7.9.2
     depends_on:
@@ -67,6 +69,8 @@ services:
     environment:
       ELASTICSEARCH_URL: http://elasticsearch:9200
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: abc123.
     ports:
     - 5601:5601
     networks:
