@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   name: elserver
   labels:
-    app: mysqlserver
+    app: elserver
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: mysqlserver
+      app: elserver
   template:
     metadata:
       labels:
-        app: mysqlserver
+        app: elserver
     spec:
       containers:
-      - name: mysqlserver
+      - name: elserver
         image: mysql:8.0.13
         ports:
         - containerPort: 3306

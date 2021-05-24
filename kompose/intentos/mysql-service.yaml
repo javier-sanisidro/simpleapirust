@@ -3,14 +3,14 @@ apiVersion: v1
 metadata:
   name: elserver
   labels:
-    app: api
+      app: api
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: api
-    tier: mysqlserver
+    tier: elserver
     ClusterIP: None
-
   ports:
   - port: 3306
+    targetPort: 3306
     
