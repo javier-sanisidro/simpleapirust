@@ -3,11 +3,11 @@ apiVersion: v1
 metadata:
   name: elserver
   labels:
-      app: api
+      app: elserver
 spec:
   type: ClusterIP
   selector:
-    app: api
+    app: elserver
     tier: elserver
     ClusterIP: None
   ports:
