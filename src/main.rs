@@ -179,18 +179,7 @@ async fn main() -> std::io::Result<()> {
     create_table(app_data.clone());
     HttpServer::new(move || {
         App::new()
-        .wrap(Logger::default())
-        .wrap(Logger::new("%a %{User-Agent}i"))
-        .wrap(Logger::new("%a %{FOO}e"))
-        .app_data(app_data.clone()
-        ).service(index)
-        .service(index2)
-        .service(hello)
-        .service(hello2)
-            .route("/", web::get().to(firstget))
-            .route("/{name}", web::get().to(firstget))
-
-            
+        .route("/",web::get().to(firstget))
     })
     // Cambie 127.0.0.1 por 0.0.0.0 dentro de los docker intentemos no referirnos a localhost y el puerto donde se va a ejecutar la aplicacion al 80 
     // podria dejarlo que se ejecute en el puerto 8080 y a la hora de ejecutarlo con docker utilizar -p 80:8080 -p <PUERTO-HOST>:<PUERTO-CONTENEDOR>
