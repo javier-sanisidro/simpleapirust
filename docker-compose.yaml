@@ -17,6 +17,8 @@ services:
   elserver:
     image: mysql:8.0.13
     #restart: always
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_USER: practicas
       MYSQL_PASSWORD: abc123.
@@ -60,6 +62,8 @@ services:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
       ELASTICSEARCH_USERNAME: elastic
       ELASTICSEARCH_PASSWORD: abc123.
+      apm-server.kibana.enabled: "true"
+      apm-server.kibana.host: "http://localhost:5601"
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.9.2
