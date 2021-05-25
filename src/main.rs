@@ -8,6 +8,7 @@ use std::sync::Arc;
 use r2d2::Pool;
 use r2d2_mysql::MysqlConnectionManager;
 
+
 fn get_pool() -> Option<Arc<Pool<MysqlConnectionManager>>> {
     let mut o = OptsBuilder::new();
     let db_name = match env::var("HOST_DATABASE") {
@@ -173,8 +174,13 @@ async fn main() -> std::io::Result<()> {
     });
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-  
-      
+    let layer = tracing_elastic_apm::new_layer(
+        "ServiceName".to_string(),
+        tracing_elastic_apm::Config::new("http://localhost:8200".to_string())
+    );
+    tracing_subscriber::registry()
+    .with(layer)
+    .init();
 
     create_table(app_data.clone());
     HttpServer::new(move || {
@@ -194,7 +200,7 @@ async fn main() -> std::io::Result<()> {
     })
     // Cambie 127.0.0.1 por 0.0.0.0 dentro de los docker intentemos no referirnos a localhost y el puerto donde se va a ejecutar la aplicacion al 80 
     // podria dejarlo que se ejecute en el puerto 8080 y a la hora de ejecutarlo con docker utilizar -p 80:8080 -p <PUERTO-HOST>:<PUERTO-CONTENEDOR>
-    .bind(("0.0.0.0", 80))?
+    .bind(("127.0.0.1", 80))?
     .run()
     .await
 }
