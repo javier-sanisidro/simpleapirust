@@ -95,7 +95,7 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
     let command=String::from("INSERT INTO person VALUES(?,?)");
     match conn.prep_exec(command, (ingreso.person_id,ingreso.person_name )){
         Ok(_val) => println!("Correct Added"),
-        Err(_e) => println!("Failed Added"),
+        Err(_e) => println!("Failed  Added"),
        };
     HttpResponse::Ok()
 }
@@ -125,9 +125,13 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
         rec = Some(from_row(row.unwrap()));
         break;
     }
- 
+    if(rec==None){
+        HttpResponse::BadRequest().body("No hay autor")
+    }else{
     let unwrap_rec = rec.unwrap();
-    format!("Hello {} ! \n",  unwrap_rec.1)
+    println!("Hello {} ! \n",  unwrap_rec.1);
+    HttpResponse::Ok().body(unwrap_rec.1)
+}
 }
 
 
@@ -183,17 +187,17 @@ async fn main() -> std::io::Result<()> {
     });
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-    let _url = match env::var("URL_APM") {
+    let url = match env::var("URL_APM") {
         Ok(val) => val,
         Err(_e) => "localhost:8200".to_string(),
        };
-       let layer = tracing_elastic_apm::new_layer(
-        "patata".to_string(),
-        Config::new(_url.to_string())
+       let _layer = tracing_elastic_apm::new_layer(
+        "Rust".to_string(),
+        Config::new(url)
     );
-       tracing_subscriber::registry()
-       .with(layer)
-       .init();
+    let _prueba=Registry::default()
+    .with(_layer);
+  
 
 
     create_table(app_data.clone());
@@ -214,7 +218,7 @@ async fn main() -> std::io::Result<()> {
     })
     // Cambie 127.0.0.1 por 0.0.0.0 dentro de los docker intentemos no referirnos a localhost y el puerto donde se va a ejecutar la aplicacion al 80 
     // podria dejarlo que se ejecute en el puerto 8080 y a la hora de ejecutarlo con docker utilizar -p 80:8080 -p <PUERTO-HOST>:<PUERTO-CONTENEDOR>
-    .bind(("127.0.0.1", 80))?
+    .bind(("0.0.0.0", 80))?
     .run()
     .await
 }

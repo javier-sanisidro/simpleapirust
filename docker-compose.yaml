@@ -20,8 +20,8 @@ services:
   elserver:
     image: mysql:8.0.13
     #restart: always
-    ports: 
-    - "3306:3306"
+    ports:
+      - 3306:3306
     environment:
       MYSQL_USER: practicas
       MYSQL_PASSWORD: abc123.
