@@ -1,6 +1,9 @@
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, middleware::Logger, post, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
+use tracing_subscriber;
+use tracing_elastic_apm::config::Config;
+use tracing_subscriber::layer::SubscriberExt;
 use serde::{Deserialize, Serialize};
 use std::env;
 use r2d2_mysql::mysql::{ OptsBuilder, QueryResult, from_row, prelude::FromRow};
@@ -46,12 +49,12 @@ struct AppState {
     app_name: String,
     pool: Arc<Pool<MysqlConnectionManager>>,
 }
-
 #[derive(Deserialize, Serialize)]
 struct Personas{
     person_id: i32,
     person_name: String,
 }
+
 
 
 async fn firstget(req: HttpRequest) ->impl Responder{
@@ -175,12 +178,12 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
     let layer = tracing_elastic_apm::new_layer(
-        "ServiceName".to_string(),
-        tracing_elastic_apm::Config::new("http://localhost:8200".to_string())
+        "rust".to_string(),
+        Config::new("localhost:8200".to_string())
     );
     tracing_subscriber::registry()
-    .with(layer)
-    .init();
+    .with(layer);
+    tracing_subscriber::fmt::init();
 
     create_table(app_data.clone());
     HttpServer::new(move || {

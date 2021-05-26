@@ -2,7 +2,7 @@
 var apm = require('elastic-apm-node').start({
   // Override service name from package.json
   // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-  serviceName: 'practica'
+  serviceName: 'detectado'
 });
 
   const app = require('express')()
@@ -10,5 +10,6 @@ var apm = require('elastic-apm-node').start({
     res.send('Hello World!')
 
   })
+
   
   app.listen(3000)
