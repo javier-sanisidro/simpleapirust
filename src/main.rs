@@ -85,7 +85,6 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
  
   
     let pool = pool.clone();
-    
     let mut conn = pool.get().unwrap();
     println!("Connect to db");
     let ingreso= Personas{
