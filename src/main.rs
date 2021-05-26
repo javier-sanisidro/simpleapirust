@@ -1,9 +1,10 @@
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, middleware::Logger, post, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
-use tracing_subscriber::{registry::Registry, Layer, prelude::*};
+use tracing_subscriber::{registry::Registry, Layer,prelude::*};
 use tracing_elastic_apm::config::Config;
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber;
 use serde::{Deserialize, Serialize};
 use std::env;
 use r2d2_mysql::mysql::{ OptsBuilder, QueryResult, from_row, prelude::FromRow};
@@ -41,7 +42,9 @@ fn get_pool() -> Option<Arc<Pool<MysqlConnectionManager>>> {
  
     println!("Getting pool");
  
-    let pool = Arc::new(r2d2::Pool::new(manager).unwrap());
+  let pool = Arc::new(r2d2::Pool::new(manager).unwrap());
+  
+
     return Option::Some(pool);
 }
 
@@ -82,6 +85,7 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
  
   
     let pool = pool.clone();
+    
     let mut conn = pool.get().unwrap();
     println!("Connect to db");
     let ingreso= Personas{
@@ -89,9 +93,12 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
         person_name: info.person_name.clone(),
     };
     println!("get data from json");
-    let _qr: QueryResult = conn.prep_exec("INSERT INTO person VALUES(?,?)", (ingreso.person_id,ingreso.person_name )).unwrap();
-    println!("add person to db");
-    HttpResponse::Ok().body("Añadido correctamente")
+    let command=String::from("INSERT INTO person VALUES(?,?)");
+    match conn.prep_exec(command, (ingreso.person_id,ingreso.person_name )){
+        Ok(_val) => println!("Correct Added"),
+        Err(_e) => println!("Failed Added"),
+       };
+    HttpResponse::Ok()
 }
 
 
@@ -177,16 +184,17 @@ async fn main() -> std::io::Result<()> {
     });
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-    let url = match env::var("URL_APM") {
+    let _url = match env::var("URL_APM") {
         Ok(val) => val,
         Err(_e) => "localhost:8200".to_string(),
        };
-    let layer = tracing_elastic_apm::new_layer(
-        "rust".to_string(),
-        Config::new(url)
+       let layer = tracing_elastic_apm::new_layer(
+        "patata".to_string(),
+        Config::new(_url.to_string())
     );
-    tracing_subscriber::registry()
-    .with(layer);
+       tracing_subscriber::registry()
+       .with(layer)
+       .init();
 
 
     create_table(app_data.clone());
@@ -217,5 +225,8 @@ fn create_table(data: Data<AppState>){
     let mut conn = pool.get().unwrap();
     println!("Create table");
     let command= String::from(" CREATE TABLE IF NOT EXISTS  person( person_id int auto_increment,person_name varchar(100) null,constraint person_pk primary key (person_id))");
-    conn.prep_exec(command, ()).unwrap();
+    match conn.prep_exec(command, ()){
+        Ok(_val) => println!("Create table ok"),
+        Err(_e) =>  println!("Create table not ok"),
+       };
 }

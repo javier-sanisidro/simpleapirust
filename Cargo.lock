@@ -2201,6 +2201,7 @@ dependencies = [
  "sanitize-filename",
  "serde 1.0.125",
  "serde_json",
+ "tokio 1.6.0",
  "tracing",
  "tracing-elastic-apm",
  "tracing-subscriber",
