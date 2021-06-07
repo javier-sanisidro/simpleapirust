@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: elserver
+  name: elserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: elserver
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: elserver
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_DATABASE
+          value: ozona
+        - name: MYSQL_PASSWORD
+          value: abc123.
+        - name: MYSQL_ROOT_PASSWORD
+          value: abc123.
+        - name: MYSQL_USER
+          value: practicas
+        image: mysql:8.0.13
+        imagePullPolicy: ""
+        name: elserver
+        ports:
+        - containerPort: 3306
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/mysql2
+          name: elserver-claim0
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes:
+      - name: elserver-claim0
+        persistentVolumeClaim:
+          claimName: elserver-claim0
+status: {}

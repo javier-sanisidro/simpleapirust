@@ -50,6 +50,9 @@ services:
           -E apm-server.kibana.enabled=true
           -E apm-server.kibana.host=kibana:5601
           -E output.elasticsearch.hosts=["elasticsearch:9200"]
+          -E output.elasticsearch.username="elastic"
+          -E output.elasticsearch.password="abc123."
+  
     healthcheck:
       interval: 10s
       retries: 12
@@ -60,6 +63,8 @@ services:
     environment:
     - bootstrap.memory_lock=true
     - cluster.name=docker-cluster
+    - xpack.security.authc.api_key.enabled=true
+    - xpack.security.enabled=true
     - ELASTIC_PASSWORD=abc123.
     - cluster.routing.allocation.disk.threshold_enabled=false
     - discovery.type=single-node

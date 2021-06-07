@@ -1,0 +1,3 @@
+
+  condition: service_healthy
+ -E output.elasticsearch.hosts=["elasticsearch:9200"]

@@ -1,10 +1,6 @@
-use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, get, middleware::Logger, post, web::{self, Data}};
+use actix_web::{App, HttpRequest, HttpResponse,http::StatusCode, HttpServer, Responder, get, middleware::Logger, post, web::{self, Data}};
 extern crate r2d2;
 extern crate r2d2_mysql;
-use tracing_subscriber::{registry::Registry, Layer,prelude::*};
-use tracing_elastic_apm::config::Config;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber;
 use serde::{Deserialize, Serialize};
 use std::env;
 use r2d2_mysql::mysql::{ OptsBuilder, QueryResult, from_row, prelude::FromRow};
@@ -57,18 +53,23 @@ struct Personas{
     person_id: i32,
     person_name: String,
 }
+async fn index() ->  HttpResponse {
+    HttpResponse::Ok().body("Hello world")
+}
 
 
-
-async fn firstget(req: HttpRequest) ->impl Responder{
+async fn firstget(req: HttpRequest) ->HttpResponse{
     let name = req.match_info().get("name").unwrap_or("World");
-    format!("Hello {}!", &name)
+    let mut body=String::from("Hello ");
+    body=body+&name;
+    HttpResponse::Ok().body(body)
 }
 
 
 
-#[get("/patata")]
-async fn hello() -> impl Responder {
+
+
+async fn hello() -> HttpResponse {
     HttpResponse::Ok().body("esto es una prueba")
 }
 
@@ -77,7 +78,7 @@ async fn hello() -> impl Responder {
 
 
 #[post("/ingresar_personas")]
-async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Responder {
+async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> HttpResponse {
     println!("Acces to post person ");
    
   
@@ -97,14 +98,14 @@ async fn hello2(info: web::Json<Personas>, data: web::Data<AppState>) -> impl Re
         Ok(_val) => println!("Correct Added"),
         Err(_e) => println!("Failed  Added"),
        };
-    HttpResponse::Ok()
+    HttpResponse::Ok().body("Correct added")
 }
 
 
 
 
 #[get("/persons/{id}")]
-async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responder {
+async fn persons(info: web::Path<i32>, data: web::Data<AppState>) ->HttpResponse {
     println!("Acces to get person by id ");
     
  
@@ -125,7 +126,7 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
         rec = Some(from_row(row.unwrap()));
         break;
     }
-    if(rec==None){
+    if rec==None{
         HttpResponse::BadRequest().body("No hay autor")
     }else{
     let unwrap_rec = rec.unwrap();
@@ -138,7 +139,7 @@ async fn index(info: web::Path<i32>, data: web::Data<AppState>) -> impl Responde
 
 
 #[get("/persona")]
-async fn index2( data: web::Data<AppState>) -> impl Responder {
+async fn persons2( data: web::Data<AppState>) -> impl Responder {
    
     println!("Acces to get all person");
  
@@ -187,30 +188,21 @@ async fn main() -> std::io::Result<()> {
     });
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
-    let url = match env::var("URL_APM") {
-        Ok(val) => val,
-        Err(_e) => "localhost:8200".to_string(),
-       };
-       let _layer = tracing_elastic_apm::new_layer(
-        "Rust".to_string(),
-        Config::new(url)
-    );
-    let _prueba=Registry::default()
-    .with(_layer);
-  
+    
 
 
     create_table(app_data.clone());
+   
     HttpServer::new(move || {
         App::new()
         .wrap(Logger::default())
         .wrap(Logger::new("%a %{User-Agent}i"))
         .wrap(Logger::new("%a %{FOO}e"))
         .app_data(app_data.clone()
-        ).service(index)
-        .service(index2)
-        .service(hello)
+        ).service(persons)
+        .service(persons2)
         .service(hello2)
+            .route("/patata",web::get().to(hello))
             .route("/", web::get().to(firstget))
             .route("/{name}", web::get().to(firstget))
 
@@ -221,6 +213,7 @@ async fn main() -> std::io::Result<()> {
     .bind(("0.0.0.0", 80))?
     .run()
     .await
+    
 }
 fn create_table(data: Data<AppState>){
     let pool = &data.pool;
@@ -232,4 +225,37 @@ fn create_table(data: Data<AppState>){
         Ok(_val) => println!("Create table ok"),
         Err(_e) =>  println!("Create table not ok"),
        };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{http, test};
+
+    #[actix_rt::test]
+    async fn test_index_ok() {
+        let req = test::TestRequest::with_header("content-type", "text/plain").to_http_request();
+        let resp = index().await;
+        assert_eq!(resp.status(), http::StatusCode::OK);
+    }
+
+    #[actix_rt::test]
+    async fn test_index_not_ok() {
+        let req = test::TestRequest::default().to_http_request();
+        let resp = index().await;
+        assert_eq!(resp.status(), http::StatusCode::BAD_REQUEST);
+    }
+    #[actix_rt::test]
+    async fn test_index_ok() {
+        let req = test::TestRequest::with_header("content-type", "text/plain").to_http_request();
+        let resp = hello(req).await;
+        assert_eq!(resp.status(), http::StatusCode::OK);
+    }
+
+    #[actix_rt::test]
+    async fn test_index_not_ok() {
+        let req = test::TestRequest::default().to_http_request();
+        let resp = hello().await;
+        assert_eq!(resp.status(), http::StatusCode::BAD_REQUEST);
+    }
 }

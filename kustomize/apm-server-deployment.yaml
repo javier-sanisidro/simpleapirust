@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: apm-server
+  name: apm-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: apm-server
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/elastic: "true"
+        io.kompose.service: apm-server
+    spec:
+      containers:
+      - args:
+        - apm-server
+        - -e
+        - -E
+        - apm-server.rum.enabled=true
+        - -E
+        - setup.kibana.host=kibana:5601
+        - -E
+        - setup.template.settings.index.number_of_replicas=0
+        - -E
+        - apm-server.kibana.enabled=true
+        - -E
+        - apm-server.kibana.host=kibana:5601
+        - -E
+        - output.elasticsearch.hosts=[elasticsearch:9200]
+        image: docker.elastic.co/apm/apm-server:7.9.2
+        imagePullPolicy: ""
+        livenessProbe:
+          exec:
+            command:
+            - curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null
+              http://localhost:8200/
+          failureThreshold: 12
+          periodSeconds: 10
+        name: apm-server
+        ports:
+        - containerPort: 8200
+        resources: {}
+        securityContext:
+          capabilities:
+            add:
+            - CHOWN
+            - DAC_OVERRIDE
+            - SETGID
+            - SETUID
+            drop:
+            - ALL
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

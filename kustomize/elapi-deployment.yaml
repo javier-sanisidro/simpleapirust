@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: elapi
+  name: elapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: elapi
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: elapi
+    spec:
+      containers:
+      - env:
+        - name: HOST_DATABASE
+          value: ozona
+        - name: PASSWORD_DATABASE
+          value: abc123.
+        - name: URL_APM
+          value: apm-server
+        - name: URL_DATABASE
+          value: elserver
+        - name: USER_DATABASE
+          value: root
+        image: elapi
+        imagePullPolicy: ""
+        name: elapi
+        ports:
+        - containerPort: 80
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: kibana
+  name: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: kibana
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert -f docker-compose.yaml
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/elastic: "true"
+        io.kompose.service: kibana
+    spec:
+      containers:
+      - env:
+        - name: ELASTICSEARCH_HOSTS
+          value: http://elasticsearch:9200
+        - name: ELASTICSEARCH_PASSWORD
+          value: abc123.
+        - name: ELASTICSEARCH_URL
+          value: http://elasticsearch:9200
+        - name: ELASTICSEARCH_USERNAME
+          value: elastic
+        - name: xpack.security.enabled
+          value: "true"
+        image: docker.elastic.co/kibana/kibana:7.9.2
+        imagePullPolicy: ""
+        livenessProbe:
+          exec:
+            command:
+            - curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null
+              http://localhost:5601/api/status
+          failureThreshold: 20
+          periodSeconds: 10
+        name: kibana
+        ports:
+        - containerPort: 5601
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

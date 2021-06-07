@@ -2,8 +2,7 @@
 var apm = require('elastic-apm-node').start({
   // Override service name from package.json
   // Allowed characters: a-z, A-Z, 0-9, -, _, and space
-  serviceName: 'detectado',
-  serverUrl: 'http://localhost:8200'
+  serviceName: 'dprueba3'
 });
 
   const app = require('express')()
@@ -13,4 +12,4 @@ var apm = require('elastic-apm-node').start({
   })
 
   
-  app.listen(3000)
+  app.listen(3002)
